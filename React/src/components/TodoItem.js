@@ -1,26 +1,62 @@
+/**
+ * TodoItem Component
+ * 
+ * A complex component that handles the display and interaction of individual todo items.
+ * Features include:
+ * 
+ * 1. Todo Display
+ *    - Title and description
+ *    - Category and priority indicators
+ *    - Due date display
+ *    - Completion status toggle
+ * 
+ * 2. Editing Capabilities
+ *    - Inline editing of all todo fields
+ *    - Form validation
+ *    - Permission-based editing
+ * 
+ * 3. Sharing System
+ *    - Share with other users
+ *    - Permission management (view/edit)
+ *    - User access revocation
+ * 
+ * 4. AI Integration
+ *    - Display of AI-generated insights
+ *    - Task difficulty estimation
+ *    - Time estimation
+ * 
+ * 5. UI/UX Features
+ *    - Smooth animations using Framer Motion
+ *    - Responsive design
+ *    - Interactive tooltips
+ *    - Loading states
+ */
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { checkUserExists, createTodoInvitation, getSharedUsers, revokeAccess, updatePermission } from '../supabase';
 
 function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareEmail, setShareEmail] = useState('');
-  const [shareError, setShareError] = useState('');
-  const [sharePermission, setSharePermission] = useState('view');
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [editedText, setEditedText] = useState(todo.title);
-  const [editedDescription, setEditedDescription] = useState(todo.description || '');
-  const [editedCategory, setEditedCategory] = useState(todo.category || 'personal');
-  const [editedDueDate, setEditedDueDate] = useState(todo.due_date || '');
-  const [editedPriority, setEditedPriority] = useState(todo.priority || 'medium');
-  const [isLoading, setIsLoading] = useState(false);
-  const [showSharedUsers, setShowSharedUsers] = useState(false);
-  const [sharedUsers, setSharedUsers] = useState([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-  const [updatingPermission, setUpdatingPermission] = useState(null);
-  const [selectedStep, setSelectedStep] = useState(null);
+  // State Management
+  const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
+  const [isSharing, setIsSharing] = useState(false); // Toggle sharing modal
+  const [shareEmail, setShareEmail] = useState(''); // Email to share with
+  const [shareError, setShareError] = useState(''); // Sharing error messages
+  const [sharePermission, setSharePermission] = useState('view'); // Default permission
+  const [showTooltip, setShowTooltip] = useState(false); // Tooltip visibility
+  const [editedText, setEditedText] = useState(todo.title); // Edited title
+  const [editedDescription, setEditedDescription] = useState(todo.description || ''); // Edited description
+  const [editedCategory, setEditedCategory] = useState(todo.category || 'personal'); // Edited category
+  const [editedDueDate, setEditedDueDate] = useState(todo.due_date || ''); // Edited due date
+  const [editedPriority, setEditedPriority] = useState(todo.priority || 'medium'); // Edited priority
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [showSharedUsers, setShowSharedUsers] = useState(false); // Show shared users modal
+  const [sharedUsers, setSharedUsers] = useState([]); // List of shared users
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false); // Loading state for users
+  const [updatingPermission, setUpdatingPermission] = useState(null); // Permission update state
+  const [selectedStep, setSelectedStep] = useState(null); // Selected step in multi-step forms
 
+  // Permission Checks
   // Check if the current user can edit the todo
   const canEdit = todo.original_owner === currentUserEmail || 
                  (todo.isShared && todo.permission === 'edit');
@@ -29,7 +65,11 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
   // Users can always delete todos for themselves, but only owners can delete for everyone
   const canDelete = todo.isShared || todo.original_owner === currentUserEmail;
 
-  // Get color based on difficulty
+  /**
+   * Utility Functions
+   */
+
+  // Get color based on difficulty level
   const getDifficultyColor = (difficulty) => {
     switch (difficulty.toLowerCase()) {
       case 'easy':
@@ -43,7 +83,31 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
     }
   };
 
-  // Fetch shared users when component mounts and when showSharedUsers changes
+  // Get color based on priority level
+  const getPriorityColor = (priority) => {
+    const colors = {
+      high: '#DC2626',
+      medium: '#F59E0B',
+      low: '#10B981',
+    };
+    return colors[priority] || '#6B7280';
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No due date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  /**
+   * Effects
+   */
+
+  // Fetch shared users when component mounts or sharing modal opens
   useEffect(() => {
     const fetchSharedUsers = async () => {
       if (!showSharedUsers || todo.original_owner !== currentUserEmail) return;
@@ -62,6 +126,11 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
     fetchSharedUsers();
   }, [showSharedUsers, todo.id, currentUserEmail, todo.original_owner]);
 
+  /**
+   * Event Handlers
+   */
+
+  // Handle sharing a todo with another user
   const handleShare = async (e) => {
     e.preventDefault();
     setShareError('');
@@ -92,6 +161,7 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
     }
   };
 
+  // Handle editing a todo
   const handleEdit = (e) => {
     e.preventDefault();
     if (editedText.trim().length === 0) return;
@@ -107,6 +177,7 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
     setIsEditing(false);
   };
 
+  // Handle changing user permissions
   const handlePermissionChange = async (userId, email, newPermission) => {
     try {
       setUpdatingPermission(userId);
@@ -120,13 +191,13 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
       );
     } catch (error) {
       console.error('Error updating permission:', error);
-      // Show error message to user
       alert('Failed to update permission. Please try again.');
     } finally {
       setUpdatingPermission(null);
     }
   };
 
+  // Handle revoking user access
   const handleRevokeAccess = async (userId, email) => {
     try {
       await revokeAccess(todo.id, email);
@@ -134,24 +205,6 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
     } catch (error) {
       console.error('Error revoking access:', error);
     }
-  };
-
-  const getPriorityColor = (priority) => {
-    const colors = {
-      high: '#DC2626',
-      medium: '#F59E0B',
-      low: '#10B981',
-    };
-    return colors[priority] || '#6B7280';
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return 'No due date';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   };
 
   // If editing, show expanded form

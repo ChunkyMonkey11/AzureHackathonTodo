@@ -1,11 +1,27 @@
 /**
  * Supabase Configuration and Utility Functions
+ * 
  * This file contains all Supabase-related functionality including:
- * - Supabase client initialization
- * - Authentication methods
- * - Database operations
- * - User profile management
- * - Todo sharing and permissions
+ * 1. Authentication
+ *    - Google OAuth integration
+ *    - Session management
+ *    - User profile management
+ * 
+ * 2. Todo Management
+ *    - CRUD operations
+ *    - Recently deleted functionality
+ *    - AI content integration
+ * 
+ * 3. Sharing System
+ *    - Todo sharing
+ *    - Permission management
+ *    - Invitation handling
+ * 
+ * 4. Database Operations
+ *    - User profiles
+ *    - Todos
+ *    - Shared todos
+ *    - Recently deleted items
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -53,7 +69,14 @@ export const updateUserProfile = async (user) => {
 };
 
 /**
- * Sign in with Google
+ * Sign in with Google OAuth
+ * 
+ * Handles the Google sign-in process:
+ * 1. Initiates OAuth flow with Google
+ * 2. Creates/updates user profile
+ * 3. Handles error cases
+ * 
+ * @returns {Promise<Object>} The authenticated user object
  */
 export const signInWithGoogle = async () => {
   try {
@@ -133,88 +156,11 @@ export const signInWithGoogle = async () => {
 };
 
 /**
- * Sign in with Microsoft
- */
-export const signInWithMicrosoft = async () => {
-  try {
-    console.log('Starting Microsoft Sign-In process...');
-    
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-      provider: 'azure',
-      options: {
-        redirectTo: window.location.origin,
-        scopes: 'email profile openid'
-      }
-    });
-
-    if (error) {
-      console.error('Microsoft Sign-In Error:', error);
-      throw error;
-    }
-
-    console.log('Microsoft Sign-In successful:', data?.user?.id);
-    
-    // If we have a user, ensure their profile exists
-    if (data?.user) {
-      console.log('Checking for existing profile...');
-      
-      // Check if profile exists
-      const { data: profile, error: profileError } = await supabaseClient
-        .from('user_profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        console.error('Error checking profile:', profileError);
-      }
-
-      console.log('Profile check result:', profile ? 'Found' : 'Not found');
-
-      // If no profile exists, create one
-      if (!profile) {
-        console.log('Creating new profile...');
-        const { error: insertError } = await supabaseClient
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            email: data.user.email,
-            display_name: data.user.user_metadata?.full_name || data.user.email,
-            photo_url: data.user.user_metadata?.avatar_url,
-            last_updated: new Date().toISOString()
-          });
-
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-          // Try upsert if insert fails
-          const { error: upsertError } = await supabaseClient
-            .from('user_profiles')
-            .upsert({
-              id: data.user.id,
-              email: data.user.email,
-              display_name: data.user.user_metadata?.full_name || data.user.email,
-              photo_url: data.user.user_metadata?.avatar_url,
-              last_updated: new Date().toISOString()
-            });
-
-          if (upsertError) {
-            console.error('Error upserting profile:', upsertError);
-          }
-        } else {
-          console.log('Profile created successfully');
-        }
-      }
-    }
-    
-    return data?.user;
-  } catch (error) {
-    console.error("Microsoft Sign-In Process Error:", error);
-    throw error;
-  }
-};
-
-/**
  * Sign out the current user
+ * 
+ * Handles user sign-out process:
+ * 1. Calls Supabase auth.signOut()
+ * 2. Handles any errors during sign-out
  */
 export const logOut = async () => {
   try {

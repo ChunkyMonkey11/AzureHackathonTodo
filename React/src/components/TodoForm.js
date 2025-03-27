@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import fetchAIResponse from '/Users/revantpatel/AIToDoWeb/React/src/services/openaiService.js';
+import fetchAIResponse from '../services/openaiService';
 
 function TodoForm({ onSubmit, onClose }) {
   const [text, setText] = useState('');

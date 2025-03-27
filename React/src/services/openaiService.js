@@ -1,26 +1,51 @@
+/**
+ * OpenAI Service for Task Analysis
+ * 
+ * This service integrates with Azure OpenAI to provide AI-powered task analysis.
+ * It requires the following environment variables to be set in your .env file:
+ * 
+ * REACT_APP_AZURE_OPENAI_ENDPOINT=your_azure_openai_endpoint
+ * REACT_APP_AZURE_OPENAI_API_KEY=your_azure_openai_api_key
+ * REACT_APP_AZURE_OPENAI_DEPLOYMENT=your_azure_openai_deployment
+ * 
+ * Make sure to create a .env file in the root of your React project
+ * and add these variables with your Azure OpenAI credentials.
+ */
+
 import { AzureOpenAI } from "openai";
 
 const fetchAIResponse = async (taskText, description) => {
+  // Get environment variables
   const endpoint = process.env.REACT_APP_AZURE_OPENAI_ENDPOINT;
   const apiKey = process.env.REACT_APP_AZURE_OPENAI_API_KEY;
   const deployment = process.env.REACT_APP_AZURE_OPENAI_DEPLOYMENT; 
   const apiVersion = "2024-05-01-preview";
 
+  // Validate environment variables
   if (!endpoint || !apiKey || !deployment) {
-    console.error("❌ Missing required environment variables");
-    console.error({
-      endpoint: !!endpoint,
-      apiKey: !!apiKey,
-      deployment: !!deployment,
-    });
-    throw new Error("Missing required environment variables");
+    console.error("❌ Azure OpenAI environment variables are missing");
+    console.error("Please make sure you have set the following in your .env file:");
+    console.error("- REACT_APP_AZURE_OPENAI_ENDPOINT");
+    console.error("- REACT_APP_AZURE_OPENAI_API_KEY");
+    console.error("- REACT_APP_AZURE_OPENAI_DEPLOYMENT");
+    
+    return {
+      summary: "AI features are not configured",
+      steps: [{
+        step: "Configuration Required",
+        details: "The AI features require Azure OpenAI credentials. Please set up your environment variables.",
+        resources: []
+      }],
+      estimatedTime: "N/A",
+      difficulty: "medium",
+      relatedTasks: []
+    };
   }
 
-  console.log("🔹 Debugging API Call:");
-  console.log("🔹 Endpoint:", endpoint);
-  console.log("🔹 Deployment:", deployment);
+  console.log("🔹 Initializing Azure OpenAI client...");
 
   try {
+    // Initialize Azure OpenAI client
     const client = new AzureOpenAI({
       apiKey,
       endpoint,
@@ -29,6 +54,7 @@ const fetchAIResponse = async (taskText, description) => {
       dangerouslyAllowBrowser: true,
     });
 
+    // Prepare the chat completion request
     const response = await client.chat.completions.create({
       model: "gpt-35-turbo",
       messages: [
@@ -80,31 +106,44 @@ Provide structured guidance and resources to help complete this task.
       presence_penalty: 0,
     });
 
-    console.log("🔹 Full API Response:", JSON.stringify(response, null, 2));
-
     if (!response.choices || response.choices.length === 0) {
       throw new Error("No AI response received.");
     }
 
-    // Parse the response as JSON
+    // Parse and validate the response
     try {
       const content = response.choices[0].message.content.trim();
-      return JSON.parse(content);
+      const parsedResponse = JSON.parse(content);
+      
+      // Validate required fields
+      if (!parsedResponse.summary || !Array.isArray(parsedResponse.steps)) {
+        throw new Error("Invalid response format");
+      }
+
+      return parsedResponse;
     } catch (error) {
       console.error("Error parsing AI response:", error);
       return {
-        summary: "Error generating structured response",
-        steps: [],
+        summary: "Error: Could not process AI response",
+        steps: [{
+          step: "Error occurred",
+          details: "There was an error processing the AI response. Please try again.",
+          resources: []
+        }],
         estimatedTime: "Unknown",
         difficulty: "medium",
         relatedTasks: []
       };
     }
   } catch (error) {
-    console.error("❌ Error fetching AI description:", error);
+    console.error("❌ Azure OpenAI API Error:", error);
     return {
-      summary: "Error generating AI response",
-      steps: [],
+      summary: "Error: Could not connect to AI service",
+      steps: [{
+        step: "Service unavailable",
+        details: "There was an error connecting to the AI service. Please check your credentials and try again.",
+        resources: []
+      }],
       estimatedTime: "Unknown",
       difficulty: "medium",
       relatedTasks: []

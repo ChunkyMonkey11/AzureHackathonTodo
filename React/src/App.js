@@ -1,11 +1,32 @@
 /**
- * Main App Component
- * Handles the core application logic including:
- * - User authentication
- * - Todo management (CRUD operations)
- * - Filtering and sorting
- * - Sharing functionality
- * - UI state management
+ * BlueTask - Main Application Component
+ * 
+ * This is the core component of the BlueTask application that handles:
+ * 1. User Authentication
+ *    - Google OAuth integration
+ *    - Session management
+ *    - Real-time auth state updates
+ * 
+ * 2. Todo Management
+ *    - CRUD operations for todos
+ *    - Real-time synchronization using Supabase subscriptions
+ *    - Support for both owned and shared todos
+ * 
+ * 3. Sharing System
+ *    - Task sharing with other users
+ *    - Permission management (view/edit)
+ *    - Invitation system
+ * 
+ * 4. UI Features
+ *    - Filtering by status and category
+ *    - Sorting by date and priority
+ *    - Recently deleted items management
+ *    - Animated transitions using Framer Motion
+ * 
+ * 5. State Management
+ *    - Local state for todos and UI
+ *    - Real-time updates from Supabase
+ *    - Optimistic updates for better UX
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,7 +34,7 @@ import TodoForm from './components/TodoForm';
 import TodoList from './components/TodoList';
 import TubelightNavbar from './components/TubelightNavbar';
 import LoginPage from './components/LoginPage';
-import { supabase, signInWithGoogle, signInWithMicrosoft, logOut } from "./supabase";
+import { supabase, signInWithGoogle, logOut } from "./supabase";
 import { AnimatePresence } from 'framer-motion';
 import InvitationsModal from './components/InvitationsModal';
 import { getPendingInvitations, moveToRecentlyDeleted, handleInvitationResponse, getSharedUsers } from './supabase';
@@ -35,8 +56,13 @@ function App() {
   const [selectedStep, setSelectedStep] = useState(null);
 
   /**
-   * Authentication State Observer
-   * Updates the user state whenever the authentication state changes
+   * Authentication Effect
+   * 
+   * Handles user authentication state:
+   * 1. Gets initial session on component mount
+   * 2. Sets up real-time auth state listener
+   * 3. Updates user state on auth changes
+   * 4. Cleans up subscription on unmount
    */
   useEffect(() => {
     // Get initial session
@@ -54,7 +80,13 @@ function App() {
 
   /**
    * Todo Fetching Effect
-   * Fetches both owned and shared todos when the user logs in
+   * 
+   * Manages todo data synchronization:
+   * 1. Fetches owned todos from 'todos' table
+   * 2. Fetches shared todos from 'shared_todos' table
+   * 3. Transforms data for frontend consumption
+   * 4. Sets up real-time subscriptions for both tables
+   * 5. Handles cleanup of subscriptions
    */
   useEffect(() => {
     if (!user) return;
@@ -175,7 +207,12 @@ function App() {
   }, [user]);
 
   /**
-   * Invitations Fetching Effect
+   * Invitations Effect
+   * 
+   * Manages todo sharing invitations:
+   * 1. Fetches pending invitations on user login
+   * 2. Shows invitations modal if there are pending invites
+   * 3. Updates invitations state on changes
    */
   useEffect(() => {
     if (!user?.email) return;
@@ -190,6 +227,15 @@ function App() {
 
     fetchInvitations();
   }, [user]);
+
+  /**
+   * Todo Management Functions
+   * 
+   * addTodo: Creates a new todo with optional AI-generated content
+   * toggleTodo: Toggles todo completion status with permission checks
+   * deleteTodo: Handles todo deletion with recently deleted support
+   * editTodo: Updates todo details with permission validation
+   */
 
   /**
    * Add a new todo
@@ -433,6 +479,18 @@ function App() {
   };
 
   /**
+   * Filtering and Sorting
+   * 
+   * filteredTodos: Filters todos based on:
+   * - Completion status (all/pending/completed)
+   * - Category selection
+   * 
+   * sortedTodos: Sorts filtered todos by:
+   * - Date (newest first)
+   * - Priority (high/medium/low)
+   */
+
+  /**
    * Filter todos based on completion status and category
    */
   const filteredTodos = todos.filter(todo => {
@@ -462,6 +520,15 @@ function App() {
     }
     return 0;
   });
+
+  /**
+   * Invitation Management
+   * 
+   * handleInvitation: Processes invitation responses:
+   * 1. Accepts/rejects invitations
+   * 2. Updates UI state accordingly
+   * 3. Fetches and adds shared todos on acceptance
+   */
 
   /**
    * Handle invitation response
@@ -670,7 +737,7 @@ function App() {
           </div>
         </>
       ) : (
-        <LoginPage onGoogleSignIn={signInWithGoogle} onMicrosoftSignIn={signInWithMicrosoft} />
+        <LoginPage onGoogleSignIn={signInWithGoogle} />
       )}
     </div>
   );

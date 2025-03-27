@@ -1,7 +1,19 @@
+/**
+ * LoginPage Component
+ * 
+ * A beautiful and modern login page that provides:
+ * 1. Google OAuth Authentication
+ * 2. Animated UI elements using Framer Motion
+ * 3. Responsive design with glassmorphism effects
+ * 4. Clear feature highlights
+ * 5. User-friendly interface
+ */
+
 import React from 'react';
 import { motion } from 'framer-motion';
+import logo from '../logo.svg';
 
-const LoginPage = ({ onGoogleSignIn, onMicrosoftSignIn }) => {
+const LoginPage = ({ onGoogleSignIn }) => {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_center,#6495ED,#95b3ed)] flex items-center justify-center p-4">
       <motion.div
@@ -13,21 +25,8 @@ const LoginPage = ({ onGoogleSignIn, onMicrosoftSignIn }) => {
         <div className="text-center mb-8">
           {/* Logo */}
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-white rounded-xl shadow-lg flex items-center justify-center">
-              <svg
-                className="w-12 h-12 text-blue-600"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </div>
+            <img src={logo} alt="BlueTask Logo" className="h-24 w-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">BlueTask</h1>
           <p className="text-white/80 text-lg">Smart Task Management</p>
         </div>
 
@@ -74,21 +73,6 @@ const LoginPage = ({ onGoogleSignIn, onMicrosoftSignIn }) => {
               </svg>
               Sign in with Google
             </motion.button>
-
-            {/* <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onMicrosoftSignIn}
-              className="w-full bg-white text-gray-700 font-medium py-3 px-6 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-3"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 23 23">
-                <path fill="#f25022" d="M1 1h10v10H1z"/>
-                <path fill="#00a4ef" d="M1 12h10v10H1z"/>
-                <path fill="#7fba00" d="M12 1h10v10H12z"/>
-                <path fill="#ffb900" d="M12 12h10v10H12z"/>
-              </svg>
-              Sign in with Microsoft
-            </motion.button> */}
           </div>
 
           <p className="text-center text-white/60 text-sm">
