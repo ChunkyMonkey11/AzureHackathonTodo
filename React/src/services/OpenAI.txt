@@ -1,0 +1,7 @@
+# Azure OpenAI Credentials
+REACT_APP_AZURE_OPENAI_ENDPOINT=https://your-resource-name.openai.azure.com
+REACT_APP_AZURE_OPENAI_API_KEY=your-azure-api-key
+REACT_APP_AZURE_OPENAI_DEPLOYMENT=your-deployment-name
+🔹 Replace values with your actual Azure OpenAI details.
+🔹 DO NOT SHARE your API key – It's a secret credential!
+🔹Use in a .env file 
