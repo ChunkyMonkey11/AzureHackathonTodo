@@ -190,10 +190,52 @@ function App() {
       .channel('shared_todos')
       .on('postgres_changes', 
         { event: '*', schema: 'public', table: 'shared_todos' },
-        (payload) => {
+        async (payload) => {
           console.log('Shared todos change received:', payload);
-          if (payload.new.recipient_email === user.email || payload.new.owner_email === user.email) {
-            fetchTodos();
+          if (payload.new.recipient_email === user.email) {
+            if (payload.eventType === 'INSERT') {
+              // Fetch the complete todo data for the new shared todo
+              const { data: todoData, error: todoError } = await supabase
+                .from('todos')
+                .select('*')
+                .eq('id', payload.new.todo_id)
+                .single();
+
+              if (todoError) {
+                console.error('Error fetching todo data:', todoError);
+                return;
+              }
+
+              // Transform the data to match the frontend format
+              const transformedTodo = {
+                id: todoData.id,
+                title: todoData.title,
+                description: todoData.description,
+                completed: todoData.completed,
+                category: todoData.category,
+                due_date: todoData.due_date,
+                priority: todoData.priority,
+                user_id: todoData.user_id,
+                owner: payload.new.owner_email,
+                original_owner: payload.new.original_owner,
+                created_at: todoData.created_at,
+                updated_at: todoData.updated_at,
+                aiContent: todoData.ai_content ? JSON.parse(todoData.ai_content) : null,
+                isShared: true,
+                sharedId: payload.new.id,
+                ownerEmail: payload.new.owner_email,
+                permission: payload.new.permission
+              };
+
+              // Add the new shared todo to the list
+              setTodos(prevTodos => [transformedTodo, ...prevTodos]);
+            } else if (payload.eventType === 'DELETE') {
+              // Remove the shared todo from the list
+              setTodos(prevTodos => prevTodos.filter(todo => todo.sharedId !== payload.old.id));
+            } else {
+              // For other changes, refresh the entire list
+              fetchTodos();
+            }
           }
         }
       )
@@ -560,18 +602,29 @@ function App() {
 
           if (sharedError) throw sharedError;
 
-          // Add the shared todo to the list
-          const sharedTodo = {
-            ...todoData,
+          // Transform the data to match the frontend format
+          const transformedTodo = {
             id: todoData.id,
+            title: todoData.title,
+            description: todoData.description,
+            completed: todoData.completed,
+            category: todoData.category,
+            due_date: todoData.due_date,
+            priority: todoData.priority,
+            user_id: todoData.user_id,
+            owner: sharedData.owner_email,
+            original_owner: sharedData.original_owner,
+            created_at: todoData.created_at,
+            updated_at: todoData.updated_at,
+            aiContent: todoData.ai_content ? JSON.parse(todoData.ai_content) : null,
             isShared: true,
             sharedId: sharedData.id,
             ownerEmail: sharedData.owner_email,
-            originalOwner: sharedData.original_owner,
             permission: sharedData.permission
           };
 
-          setTodos(prevTodos => [sharedTodo, ...prevTodos]);
+          // Add the shared todo to the list
+          setTodos(prevTodos => [transformedTodo, ...prevTodos]);
         }
       }
     } catch (error) {
