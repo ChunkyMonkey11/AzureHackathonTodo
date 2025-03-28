@@ -52,7 +52,9 @@ npm install
 ```
 REACT_APP_SUPABASE_URL=your_supabase_url
 REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
-REACT_APP_OPENAI_API_KEY=your_openai_api_key
+REACT_APP_AZURE_OPENAI_API_KEY=your_openai_api_key
+REACT_APP_AZURE_OPENAI_ENDPOINT=your_openai_endpoint
+REACT_APP_AZURE_OPENAI_DEPLOYMENT=deployment model
 ```
 
 4. Set up the database:
