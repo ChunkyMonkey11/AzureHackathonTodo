@@ -610,6 +610,13 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
       {/* AI Content Preview */}
       {todo.aiContent && (
         <div className="mt-4 pt-4 border-t border-gray-200/50">
+          {/* Summary */}
+          <div className="space-y-2 mb-4">
+            <h4 className="text-sm font-medium text-gray-700">AI Assistant Insights</h4>
+            <p className="text-sm text-gray-600">{todo.aiContent.summary}</p>
+          </div>
+
+          {/* Task Info */}
           <div className="flex items-center flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50/50 backdrop-blur-sm">
               <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -626,6 +633,75 @@ function TodoItem({ todo, onToggle, onDelete, onEdit, currentUserEmail }) {
               </span>
             </div>
           </div>
+
+          {/* Steps */}
+          {todo.aiContent.steps && (
+            <div className="mt-4 space-y-3">
+              <h5 className="text-sm font-medium text-gray-700">Steps</h5>
+              <div className="space-y-2">
+                {todo.aiContent.steps.map((step, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-3 bg-white/80 rounded-lg shadow-sm hover:bg-white/90 transition-colors cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStep(selectedStep === index ? null : index);
+                    }}
+                  >
+                    <div className="flex-shrink-0 w-6 h-6 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{step.step}</p>
+                      {selectedStep === index && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mt-2 space-y-2"
+                        >
+                          {step.details && (
+                            <p className="text-sm text-gray-600">{step.details}</p>
+                          )}
+                          {step.resources && step.resources.length > 0 && (
+                            <div className="space-y-1">
+                              {step.resources.map((resource, rIndex) => (
+                                <a
+                                  key={rIndex}
+                                  href={resource.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                  {resource.title}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Related Tasks */}
+          {todo.aiContent.relatedTasks && todo.aiContent.relatedTasks.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h5 className="text-sm font-medium text-gray-700">Related Tasks</h5>
+              <ul className="list-disc list-inside space-y-1">
+                {todo.aiContent.relatedTasks.map((task, index) => (
+                  <li key={index} className="text-sm text-gray-600">{task}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 
