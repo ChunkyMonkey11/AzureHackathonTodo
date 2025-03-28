@@ -124,13 +124,13 @@ The application will be available at `http://localhost:3000`
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/yourusername/bluetask/issues).
+Contributions, issues, and feature requests are welcome!
 
 ## 👤 Author
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@ChunkyMonkey11](https://github.com/ChunkyMonkey11)
 
 ## 🙏 Acknowledgments
 - Supabase team for the amazing backend service
 - React team for the powerful frontend framework
 - OpenAI for the AI capabilities
-- All contributors who help improve this project 
+- Tech2Hard for guidance through project.
